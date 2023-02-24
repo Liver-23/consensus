@@ -19,10 +19,13 @@ for name, value in os.environ.items():
         print(f"{name} = {value}")
 
 # default ports
-PROJECT_NAME = input ("Enter name of the project to map variables (e.g. LAVA): ").upper()
+IP_CONFIG = input ("Enter IP (default:127.0.0.1): ") or "127.0.0.1"
+PROJECT_NAME = input ("Enter name of the project to map variables (e.g. lava): ").upper()
 
-REST = "http://127.0.0.1:" + os.environ.get(PROJECT_NAME + "_PORT") + "317"
-RPC = "http://127.0.0.1:" + os.environ.get(PROJECT_NAME + "_PORT") + "657"
+REST = "http://" + f"{IP_CONFIG}" + ":" + os.environ.get(PROJECT_NAME + "_PORT") + "317"
+print(f"{REST}")
+RPC = "http://" + f"{IP_CONFIG}" + ":"  + os.environ.get(PROJECT_NAME + "_PORT") + "657"
+print(f"{RPC}")
 
 def handle_request(api: str, pattern: str):
     try:
