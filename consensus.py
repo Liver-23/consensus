@@ -4,6 +4,7 @@ from urllib import request
 import math, os
 from sys import exit
 from json import loads
+import readline
 
 ERR_MSG = f"\033[91m[ERR] API endpoint unreachable: api\n" \
           f"[ERR] Be sure you have enabled your API " \
