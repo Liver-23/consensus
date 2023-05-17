@@ -5,24 +5,39 @@ import math, os
 from sys import exit
 from json import loads
 import readline
+import argparse
+import string
+from unidecode import unidecode
 
 ERR_MSG = f"\033[91m[ERR] API endpoint unreachable: api\n" \
           f"[ERR] Be sure you have enabled your API " \
-          f"(you can enable this in your app.toml config file)\n" \
-          f"Bugreports Discord: Yep++#9963\033[0m"
+          f"(you can enable this in your app.toml config file)\n"
 
 # show all cosmos ports
 suffix = "_PORT"
 
+# Define command-line arguments
+parser = argparse.ArgumentParser(description="Consensys check for Cosmos blockchains")
+parser.add_argument("--ip", required=False, help="Enter IP (default: 127.0.0.1)")
+parser.add_argument("--project", required=False, help="Enter name of the project to map variables (e.g. lava)")
+
+# Parse the command-line arguments
+args = parser.parse_args()
+
 # Loop over all environment variables and print the ones that match the pattern
-for name, value in os.environ.items():
-    if name.endswith(suffix):
-        print(f"{name} = {value}")
+if not args.project:
+    for name, value in os.environ.items():
+        if name.endswith(suffix):
+            print(f"{name} = {value}")
 
-# default ports
-IP_CONFIG = input ("Enter IP (default:127.0.0.1): ") or "127.0.0.1"
-PROJECT_NAME = input ("Enter name of the project to map variables (e.g. lava): ").upper()
+# Use the provided values, or prompt the user if not provided
+IP_CONFIG = args.ip if args.ip else input ("Enter IP (default:127.0.0.1): ") or "127.0.0.1"
+PROJECT_NAME = args.project.upper() if args.project else input("Enter name of the project to map variables (e.g. lava): ").upper()
 
+print("IP_CONFIG:", IP_CONFIG)
+print("PROJECT_NAME:", PROJECT_NAME)
+
+# Ports configuration based on the provided values
 REST = "http://" + f"{IP_CONFIG}" + ":" + os.environ.get(PROJECT_NAME + "_PORT") + "317"
 print(f"{REST}")
 RPC = "http://" + f"{IP_CONFIG}" + ":"  + os.environ.get(PROJECT_NAME + "_PORT") + "657"
@@ -96,11 +111,16 @@ def get_bonded():
     result = handle_request(REST, '/cosmos/staking/v1beta1/pool')['pool']
     return result
 
-
 def strip_emoji_non_ascii(moniker):
-    # moniker = emoji.replace_emoji(moniker, replace='')
-    moniker = "".join([letter for letter in moniker if letter.isascii()])
+    moniker = unidecode(moniker)
+    allowed_chars = string.ascii_letters + string.digits + string.punctuation + ' '
+    moniker = "".join([letter for letter in moniker if letter in allowed_chars])
     return moniker[:15].strip().lstrip()
+
+#def strip_emoji_non_ascii(moniker):
+    # moniker = emoji.replace_emoji(moniker, replace='')
+    # moniker = "".join([letter for letter in moniker if letter.isascii()])
+    # return moniker[:15].strip().lstrip()
 
 
 def get_validators_rest():
@@ -128,7 +148,6 @@ def get_validators_rest():
 
 
 def merge_info():
-    print('Bugreports discord: Yep++#9963')
     votes = get_validator_votes()
     validators = get_validators()
     votes_and_vals = list(zip(votes, validators))
